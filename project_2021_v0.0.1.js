@@ -15,11 +15,18 @@ prefix = ',';
 sep1 = '|';
 sep2 = ';';
 
+
+//System Roles
+warnRoles = [null, null];
+warnRolesPath = 'warnRoles.txt';
+
 //Roles
 groupRoles = []; //группы, 2-мерный массив, 1 индекс - название предмета, второй - номер группы
 moderatorRole = null; //Модер
 testerRole = null; //Тестер
 HWRole = null; //Заполнение дз
+adminRole = null; //Админимтратор
+developerRole = null; //Разработчик
 
 //Categories
 groupCategories = [];
@@ -76,6 +83,24 @@ bot.on('ready', () =>
                 {
                     console.log('Роль модератора установлена');
                 }
+                adminRole = server.roles.cache.find(role => role.id == _ids[3]);
+                if(adminRole == null)
+                {
+                    console.log('Роль администратора не найдена...');
+                }
+                else
+                {
+                    console.log('Роль администратора установлена');
+                }
+                developerRole = server.roles.cache.find(role => role.id == _ids[4]);
+                if(developerRole == null)
+                {
+                    console.log('Роль разработчика не найдена...');
+                }
+                else
+                {
+                    console.log('Роль разработчика установлена');
+                }
             }
             if(fs.existsSync(generalChannelsPath))
             {
@@ -107,8 +132,39 @@ bot.on('ready', () =>
                 else
                 {
                     console.log('Канал информации установлен');
+                    infoChannel.send('```Бот запущен и готов к работе```');
                 }
 
+            }
+            if(fs.existsSync(warnRolesPath))
+            {
+                _temp = fs.readFileSync(warnRolesPath).toString();
+                _ids = _temp.split(sep1);
+                warnRoles[0] = server.roles.cache.find(role => role.id == _ids[0]);
+                if(warnRoles[0] == null)
+                {
+                    console.log('Роль warn1 не найдена...')
+                    fs.rmSync(warnRolesPath);
+                }
+                else
+                {
+                    console.log('Роль warn1 установлена')
+                }
+                warnRoles[1] = server.roles.cache.find(role => role.id == _ids[1]);
+                if(warnRoles[1] == null)
+                {
+                    console.log('Роль warn2 не найдена...')
+                    fs.rmSync(warnRolesPath);
+                }
+                else
+                {
+                    console.log('Роль warn2 установлена')
+                }
+            }
+            else
+            {
+                server.roles.create({data: {name: "Warn[1/3]"}}).then(newRole => warnRoles[0] = newRole);
+                server.roles.create({data: {name: "Warn[2/3]"}}).then(newRole => warnRoles[1] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id));
             }
         }
         else
@@ -183,13 +239,11 @@ bot.on('message', message =>
                     }
                     else
                     {
-                        message.channel.send('Роль модератора установлена.\nНастройка завершена, выполняю сохранение...\nВведите через хештег канал управления ботом...');
+                        message.channel.send('Роль модератора установлена.\nУкажите через тег роль администратора...');
                         stageSetup = 3;
-                        fs.writeFileSync(generalRolesPath, testerRole.id + sep1 + HWRole.id + sep1 + moderatorRole.id, 'utf8');
-                        console.log('Администратор обновил основные роли...')
                     }
                 break;
-                case 3:
+                case 5:
                     
                         _tempChannel = botChannel;
                         botChannel = null;
@@ -204,11 +258,11 @@ bot.on('message', message =>
                         else
                         {
                             message.channel.send('Канал установлен.\nВведите через хештег канал логирования бота...');
-                            stageSetup = 4;
+                            stageSetup = 6;
                         }
                     
                 break;
-                case 4:
+                case 6:
                     
                         _tempChannel = logChannel;
                         logChannel = null;
@@ -223,11 +277,11 @@ bot.on('message', message =>
                         else
                         {
                             message.channel.send('Канал установлен.\nВведите через хештег канал информации...');
-                            stageSetup = 5;
+                            stageSetup = 7;
                         }
                     
                 break;
-                case 5:
+                case 7:
 
                         _tempChannel = infoChannel;
                         infoChannel = null;
@@ -241,14 +295,42 @@ bot.on('message', message =>
                         }
                         else
                         {
-                            message.channel.send('Канал установлен, настройка завершена.\nВыполняю сохранение...');
+                            message.channel.send('Канал установлен, настройка каналов завершена.\nВыполняю сохранение...\n');
                             stageSetup = 0;
                             isSetup = false;
                             fs.writeFileSync(generalChannelsPath, botChannel+sep1+logChannel+sep1+infoChannel, 'utf8')
                             console.log('Администратор обновил основные каналы...');
+                        }  
+                break;
+                case 3:
+                        adminRole = message.mentions.roles.first();
+                        if(adminRole == null)
+                        {
+                            message.channel.send('Ошибка, отмена настройки....');
+                            isSetup = false;
+                            stageSetup = 0;
                         }
-                    
-                    
+                        else
+                        {
+                            message.channel.send('Роль установлена. Укажите через тег роль разработчика...')
+                            stageSetup = 4;
+                        }
+                break;
+                case 4:
+                        developerRole = message.mentions.roles.first();
+                        if(developerRole == null)
+                        {
+                            message.channel.send('Ошибка, отмена настройки....');
+                            isSetup = false;
+                            stageSetup = 0;
+                        }
+                        else
+                        {
+                            message.channel.send('Роль установлена. Выполняю сохранение...\nУкажите через хештег канал управления ботом...')
+                            stageSetup = 5;
+                            fs.writeFileSync(generalRolesPath, testerRole.id + sep1 + HWRole.id + sep1 + moderatorRole.id + sep1 + adminRole.id + sep1 + developerRole.id, 'utf8');
+                            console.log('Администратор обновил основные роли...');
+                        }
                 break;
                 default:
                     message.channel.send("Что-то пошло не так:/");
@@ -261,8 +343,82 @@ bot.on('message', message =>
             {
                 isSetup = true;
                 stageSetup = 0;
-                message.channel.send('Введите через тег роль тестера...')
+                message.channel.send('Введите через тег роль тестера...');
             }
+            else if(msg.startsWith(prefix + 'ban'))
+            {
+                userToBan = message.mentions.members.first();
+                if(adminRole.members.find(_member => _member == server.members.cache.find(member => member.user == message.author)) != null
+                && adminRole.members.find(_member => _member == userToBan) == null
+                && moderatorRole.members.find(_member => _member == userToBan) == null
+                && developerRole.members.find(_member => _member == userToBan) == null)
+                {
+                    console.log('WARN: Забанен пользователь ' + userToBan.user.username + ' администратором ' + message.author.username);
+                    server.members.ban(userToBan, {days: 0, reason: 'Забанен администратором ' + message.author.username});
+                    message.reply('Пользователь ' + userToBan.user.id + ' забанен');
+                }
+                else
+                {
+                    message.reply('Вы не являетесь администратором сервера или пользователь является модератором, администратором или разработчиком');
+                }
+            }
+            else if(msg.startsWith(prefix + 'kick'))
+            {
+                userToKick = message.mentions.members.first();
+                if(adminRole.members.find(_member => _member == server.members.cache.find(member => member.user == message.author)) != null
+                && adminRole.members.find(_member => _member == userToKick) == null
+                && moderatorRole.members.find(_member => _member == userToKick) == null
+                && developerRole.members.find(_member => _member == userToKick) == null)
+                {
+                    console.log('INFO: Кикнут пользователь ' + userToKick.user.username + ' администратором ' + message.author.username);
+                    userToKick.kick({reason: 'Кикнут администратором ' + message.author.username}).then(() => 
+                    {
+                        message.reply('Пользователь ' + userToKick.user.tag + ' кикнут');
+                    });
+
+                }
+                else
+                {
+                    message.reply('Вы не являетесь администратором сервера или пользователь является модератором, администратором или разработчиком');
+                }
+            }
+            else if(msg.startsWith(prefix + 'warn'))
+            {
+                userToWarn = message.mentions.members.first();
+                if(adminRole.members.find(_member => _member.user == message.author) != null
+                || moderatorRole.members.find(_member => _member.user == message.author) != null
+                || developerRole.members.find(_member => _member.user == message.author) != null)
+                {
+                    if(warnRoles[0].members.find(_member => _member == userToWarn) != null)
+                    {
+                        userToWarn.roles.remove(warnRoles[0]);
+                        userToWarn.roles.add(warnRoles[1], 'Выдано администратором' + message.author.username);
+                        infoChannel.send('Пользователь <@' + userToWarn.user.id + '> получает [2/3] предупреждение');
+                    }
+                    else if(warnRoles[1].members.find(_member => _member == userToWarn) != null)
+                    {
+                        userToWarn.roles.remove(warnRoles[1]);
+                        //warnRoles[1].members.concat(userToWarn);
+                        infoChannel.send('Пользователь <@' + userToWarn.user.id + '> получает [3/3] предупреждение и будет кикнут с сервера');
+                        userToWarn.kick('[3/3] предупреждений');
+                    }
+                    else
+                    {
+                        userToWarn.roles.add(warnRoles[0]);
+                        infoChannel.send('Пользователь <@' + userToWarn.user.id + '> получает [1/3] предупреждение');
+                    }
+                }
+                else
+                {
+                    message.reply('Вы не являетесь администратором, модератором или разработчиком');
+                }
+                
+            }
+            else if(!msg.startsWith(prefix))
+            {
+                message.delete();
+            }
+            
     }
 });
 if(fs.existsSync('../token.txt'))
@@ -270,4 +426,8 @@ if(fs.existsSync('../token.txt'))
     token = fs.readFileSync('../token.txt').toString();
     console.log(token);
     bot.login(token).catch(() => console.error("Error: token rejected, chack your bot token..."));
+}
+else
+{
+    console.error('Error: no token available...');
 }
