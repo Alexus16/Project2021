@@ -265,9 +265,9 @@ bot.on('message', message =>
             }
     }
 });
-
 if(fs.existsSync('../token.txt'))
 {
-    token = fs.readFileSync('../token.txt');
-    bot.login(token);
+    token = fs.readFileSync('../token.txt').toString();
+    console.log(token);
+    bot.login(token).catch(() => console.error("token rejected"));
 }
