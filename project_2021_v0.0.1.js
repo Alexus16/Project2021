@@ -269,5 +269,5 @@ if(fs.existsSync('../token.txt'))
 {
     token = fs.readFileSync('../token.txt').toString();
     console.log(token);
-    bot.login(token).catch(() => console.error("token rejected"));
+    bot.login(token).catch(() => console.error("Error: token rejected, chack your bot token..."));
 }
