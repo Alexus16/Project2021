@@ -265,4 +265,9 @@ bot.on('message', message =>
             }
     }
 });
-bot.login('ODA2OTcwNDg3MTc4OTIwMDE3.YBxL1A.C7kfC8Q4jx016VnCZikwy4HJNfg');
+
+if(fs.existsSync('../token.txt'))
+{
+    token = fs.readFileSync('../token.txt');
+    bot.login(token);
+}
