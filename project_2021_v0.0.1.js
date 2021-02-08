@@ -20,6 +20,10 @@ sep2 = ';';
 warnRoles = [null, null];
 warnRolesPath = 'warnRoles.txt';
 
+//banList
+muteList = [];
+//banList
+banList = []
 //Roles
 groupRoles = []; //группы, 2-мерный массив, 1 индекс - название предмета, второй - номер группы
 moderatorRole = null; //Модер
@@ -42,16 +46,16 @@ bot.on('ready', () =>
     //Подключение сохранённого сервера
     if(!fs.existsSync(serverPath))
     {
-        console.log("Файл с сохранённым сервером не обнаружен, ожидание команды !connect для подключения сервера...");
+        _err("Файл с сохранённым сервером не обнаружен, ожидание команды !connect для подключения сервера...");
     }
     else
     {
-        console.log("Файл с сохранённым сервером обнаружен. Попытка подключения...");
+        _info("Файл с сохранённым сервером обнаружен. Попытка подключения...");
         _serverId = fs.readFileSync(serverPath);
         server = bot.guilds.cache.find(guild => guild.id == _serverId);
         if(server != null)
         {
-            console.log('Сервер подключён.')
+            _info('Сервер подключён.')
             if(fs.existsSync(generalRolesPath))
             {
                 const _temp = fs.readFileSync(generalRolesPath).toString();
@@ -59,47 +63,47 @@ bot.on('ready', () =>
                 testerRole = server.roles.cache.find(role => role.id == _ids[0]);
                 if(testerRole == null)
                 {
-                    console.log('Роль тестера не найдена...');
+                    _warn('Роль тестера не найдена...');
                 }
                 else
                 {
-                    console.log('Роль тестера установлена');
+                    _info('Роль тестера установлена');
                 }
                 HWRole = server.roles.cache.find(role => role.id == _ids[1]);
                 if(HWRole == null)
                 {
-                    console.log('Роль заполнителя ДЗ не найдена...');
+                    _warn('Роль заполнителя ДЗ не найдена...');
                 }
                 else
                 {
-                    console.log('Роль заполнителя ДЗ установлена');
+                    _info('Роль заполнителя ДЗ установлена');
                 }
                 moderatorRole = server.roles.cache.find(role => role.id == _ids[2]);
                 if(moderatorRole == null)
                 {
-                    console.log('Роль модератора не найдена...');
+                    _warn('Роль модератора не найдена...');
                 }
                 else
                 {
-                    console.log('Роль модератора установлена');
+                    _info('Роль модератора установлена');
                 }
                 adminRole = server.roles.cache.find(role => role.id == _ids[3]);
                 if(adminRole == null)
                 {
-                    console.log('Роль администратора не найдена...');
+                    _warn('Роль администратора не найдена...');
                 }
                 else
                 {
-                    console.log('Роль администратора установлена');
+                    _info('Роль администратора установлена');
                 }
                 developerRole = server.roles.cache.find(role => role.id == _ids[4]);
                 if(developerRole == null)
                 {
-                    console.log('Роль разработчика не найдена...');
+                    _warn('Роль разработчика не найдена...');
                 }
                 else
                 {
-                    console.log('Роль разработчика установлена');
+                    _info('Роль разработчика установлена');
                 }
             }
             if(fs.existsSync(generalChannelsPath))
@@ -109,29 +113,29 @@ bot.on('ready', () =>
                 botChannel = server.channels.cache.find(channel => channel.id == _ids[0]);
                 if(botChannel == null)
                 {
-                    console.log('Канал управления ботом не найден...');
+                    _warn('Канал управления ботом не найден...');
                 }
                 else
                 {
-                    console.log('Канал управления ботом установлен');
+                    _info('Канал управления ботом установлен');
                 }
                 logChannel = server.channels.cache.find(channel => channel.id == _ids[1]);
                 if(logChannel == null)
                 {
-                    console.log('Канал логирования не найден...');
+                    _warn('Канал логирования не найден...');
                 }
                 else
                 {
-                    console.log('Канал логирования установлен');
+                    _info('Канал логирования установлен');
                 }
                 infoChannel = server.channels.cache.find(channel => channel.id == _ids[2]);
                 if(infoChannel == null)
                 {
-                    console.log('Канал информации не найден...');
+                    _warn('Канал информации не найден...');
                 }
                 else
                 {
-                    console.log('Канал информации установлен');
+                    _info('Канал информации установлен');
                     infoChannel.send('```Бот запущен и готов к работе```');
                 }
 
@@ -143,33 +147,56 @@ bot.on('ready', () =>
                 warnRoles[0] = server.roles.cache.find(role => role.id == _ids[0]);
                 if(warnRoles[0] == null)
                 {
-                    console.log('Роль warn1 не найдена...')
+                    _warn('Роль warn1 не найдена...')
                     fs.rmSync(warnRolesPath);
                 }
                 else
                 {
-                    console.log('Роль warn1 установлена')
+                    _info('Роль warn1 установлена')
                 }
                 warnRoles[1] = server.roles.cache.find(role => role.id == _ids[1]);
                 if(warnRoles[1] == null)
                 {
-                    console.log('Роль warn2 не найдена...')
+                    _warn('Роль warn2 не найдена...')
                     fs.rmSync(warnRolesPath);
                 }
                 else
                 {
-                    console.log('Роль warn2 установлена')
+                    _info('Роль warn2 установлена')
+                }
+                warnRoles[2] = server.roles.cache.find(role => role.id == _ids[2]);
+                if(warnRoles[2] == null)
+                {
+                    _warn('Роль mute не найдена...')
+                    fs.rmSync(warnRolesPath);
+                }
+                else
+                {
+                    _info('Роль mute установлена')
+                }
+                warnRoles[3] = server.roles.cache.find(role => role.id == _ids[3]);
+                if(warnRoles[3] == null)
+                {
+                    _warn('Роль default не найдена...')
+                    fs.rmSync(warnRolesPath);
+                }
+                else
+                {
+                    _info('Роль default установлена')
                 }
             }
             else
             {
                 server.roles.create({data: {name: "Warn[1/3]"}}).then(newRole => warnRoles[0] = newRole);
-                server.roles.create({data: {name: "Warn[2/3]"}}).then(newRole => warnRoles[1] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id));
+                server.roles.create({data: {name: "Warn[2/3]"}}).then(newRole => warnRoles[1] = newRole);
+                server.roles.create({data: {name: "Mute", position: server.roles.cache.array().length}}).then(newRole => warnRoles[2] = newRole);
+                server.roles.create({data: {name: "User", position: server.roles.cache.array().length}}).then(newRole => warnRoles[3] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id + sep1 + warnRoles[2].id + sep1 + warnRoles[3].id));
             }
+
         }
         else
         {
-            console.log("Сохранённый сервер не может быть найден или пдключён. Ожидание команды !connect для подключения нового сервера...")
+            _err("Сохранённый сервер не может быть найден или подключён. Ожидание команды !connect для подключения нового сервера...")
         }
     }
 });
@@ -348,14 +375,19 @@ bot.on('message', message =>
             else if(msg.startsWith(prefix + 'ban'))
             {
                 userToBan = message.mentions.members.first();
-                if(adminRole.members.find(_member => _member == server.members.cache.find(member => member.user == message.author)) != null
-                && adminRole.members.find(_member => _member == userToBan) == null
-                && moderatorRole.members.find(_member => _member == userToBan) == null
-                && developerRole.members.find(_member => _member == userToBan) == null)
+                args = msg.split(' ');
+                if(args.length < 4) return;
+                _reason = '';
+                for(i = 3; i < args.length; i++)
                 {
-                    console.log('WARN: Забанен пользователь ' + userToBan.user.username + ' администратором ' + message.author.username);
-                    server.members.ban(userToBan, {days: 0, reason: 'Забанен администратором ' + message.author.username});
-                    message.reply('Пользователь ' + userToBan.user.id + ' забанен');
+                    _reason += args[i] + ' ';
+                }
+                _reason += '\b';
+                _time = args[2];
+                if(ban(userToBan, message.author, _reason, _time))
+                {
+                    _warn(`${message.author.username} забанил пользователя ${userToBan.user.username}`);
+                    message.reply('Пользователь забанен');
                 }
                 else
                 {
@@ -364,56 +396,72 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'kick'))
             {
-                userToKick = message.mentions.members.first();
-                if(adminRole.members.find(_member => _member == server.members.cache.find(member => member.user == message.author)) != null
-                && adminRole.members.find(_member => _member == userToKick) == null
-                && moderatorRole.members.find(_member => _member == userToKick) == null
-                && developerRole.members.find(_member => _member == userToKick) == null)
+            }
+            else if(msg.startsWith(prefix + 'warn'))
+            {
+                userToWarn = message.mentions.members.first();
+                args = msg.split(' ');
+                if(args.length < 3) return;
+                _reason = '';
+                for(i = 2; i < args.length; i++)
                 {
-                    console.log('INFO: Кикнут пользователь ' + userToKick.user.username + ' администратором ' + message.author.username);
-                    userToKick.kick({reason: 'Кикнут администратором ' + message.author.username}).then(() => 
-                    {
-                        message.reply('Пользователь ' + userToKick.user.tag + ' кикнут');
-                    });
-
+                    _reason += args[i] + ' ';
+                }
+                _reason += '\b';
+                if(warn(userToWarn, message.author, _reason))
+                {
+                    _warn(`${message.author.username} выдал предупреждение польщователю ${userToWarn.user.username}`);
+                    message.reply(`Пользователю выдано предупреждение.`)
+                }
+                else
+                {
+                    message.reply('Вы не являетесь администратором, модератором или разработчиком или пользователь является модератором, администратором или разработчиком');
+                }
+            }
+            else if(msg.startsWith(prefix + 'mute'))
+            {
+                userToMute = message.mentions.members.first();
+                args = msg.split(' ');
+                if(args.length < 4) return;
+                _reason = '';
+                for(i = 3; i < args.length; i++)
+                {
+                    _reason += args[i] + ' ';
+                }
+                _reason += '\b';
+                _time = args[2];
+                if(mute(userToMute, message.author, _reason, _time))
+                {
+                    _warn(`${message.author.username} выдал мут польщователю ${userToMute.user.username}`);
+                    message.reply(`Пользователю выдан MUTE.`)
+                }
+                else
+                {
+                    message.reply('Вы не являетесь администратором, модератором или разработчиком или пользователь является модератором, администратором или разработчиком');
+                }
+            }
+            else if(msg.startsWith(prefix + 'pban'))
+            {
+                userToBan = message.mentions.members.first();
+                args = msg.split(' ');
+                if(args.length < 3) return;
+                _reason = '';
+                for(i = 2; i < args.length; i++)
+                {
+                    _reason += args[i] + ' ';
+                }
+                _reason += '\b';
+                if(pBan(userToBan, message.author, _reason))
+                {
+                    _warn(`${message.author.username} забанил пользователя ${userToBan.user.username} навсегда`);
+                    message.reply('Пользователь забанен навсегда');
                 }
                 else
                 {
                     message.reply('Вы не являетесь администратором сервера или пользователь является модератором, администратором или разработчиком');
                 }
             }
-            else if(msg.startsWith(prefix + 'warn'))
-            {
-                userToWarn = message.mentions.members.first();
-                if(adminRole.members.find(_member => _member.user == message.author) != null
-                || moderatorRole.members.find(_member => _member.user == message.author) != null
-                || developerRole.members.find(_member => _member.user == message.author) != null)
-                {
-                    if(warnRoles[0].members.find(_member => _member == userToWarn) != null)
-                    {
-                        userToWarn.roles.remove(warnRoles[0]);
-                        userToWarn.roles.add(warnRoles[1], 'Выдано администратором' + message.author.username);
-                        infoChannel.send('Пользователь <@' + userToWarn.user.id + '> получает [2/3] предупреждение');
-                    }
-                    else if(warnRoles[1].members.find(_member => _member == userToWarn) != null)
-                    {
-                        userToWarn.roles.remove(warnRoles[1]);
-                        //warnRoles[1].members.concat(userToWarn);
-                        infoChannel.send('Пользователь <@' + userToWarn.user.id + '> получает [3/3] предупреждение и будет кикнут с сервера');
-                        userToWarn.kick('[3/3] предупреждений');
-                    }
-                    else
-                    {
-                        userToWarn.roles.add(warnRoles[0]);
-                        infoChannel.send('Пользователь <@' + userToWarn.user.id + '> получает [1/3] предупреждение');
-                    }
-                }
-                else
-                {
-                    message.reply('Вы не являетесь администратором, модератором или разработчиком');
-                }
-                
-            }
+
             else if(!msg.startsWith(prefix))
             {
                 message.delete();
@@ -430,4 +478,117 @@ if(fs.existsSync('../token.txt'))
 else
 {
     console.error('Error: no token available...');
+}
+
+bot.on('guildMemberAdd', member =>
+{
+    //member.roles.add(warnRoles[3].id);
+    logChannel.send(`<@${member.user.id}> присоединился к серверу...`);
+    _info(`Новый пользователь: ${member.user.username}`)
+})
+
+function checkRoles(memberToAction, userToAction)
+{
+    if((adminRole.members.find(_member => _member.user == userToAction) != null
+    || moderatorRole.members.find(_member => _member.user == userToAction) != null
+    || developerRole.members.find(_member => _member.user == userToAction) != null)
+    && (adminRole.members.find(_member => _member == memberToAction) == null
+    && moderatorRole.members.find(_member => _member == memberToAction) == null
+    && developerRole.members.find(_member => _member == memberToAction) == null))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+function _info(_msg)
+{
+    console.log('\x1b[32mINFO: \x1b[0m' + _msg);
+}
+
+function _warn(_msg)
+{
+    console.log('\x1b[33mWARN: \x1b[0m' + _msg);
+}
+
+function _err(_msg)
+{
+    console.log('\x1b[31mERROR: \x1b[0m' + _msg);
+}
+
+function warn(memberToAction, adm, reason)
+{
+    if(!checkRoles(memberToAction, adm))
+        return false;
+    if(warnRoles[0].members.find(member => member == memberToAction))
+    {
+        memberToAction.roles.remove(warnRoles[0]);
+        memberToAction.roles.add(warnRoles[1], reason);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[2/3] предупреждение** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    else if(warnRoles[1].members.find(member => member == memberToAction))
+    {
+        memberToAction.roles.remove(warnRoles[1]);
+        mute(memberToAction, adm, '[3/3] предупреждений', 300);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[3/3] предупреждение => MUTE 300 минут** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    else if(warnRoles[2].members.find(member => member == memberToAction))
+    {
+        memberToAction.roles.remove(warnRoles[2]);
+        //memberToAction.roles.add(warnRoles[1], reason);
+        ban(memberToAction, adm, '[4/3] предупреждений', 7);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[4/3] предупреждение => BAN 7 дней** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    else
+    {
+        //memberToAction.roles.remove(warnRoles[0]);
+        memberToAction.roles.add(warnRoles[0], reason);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[1/3] предупреждение** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    return true;
+}
+
+function pBan(memberToAction, adm, reason)
+{
+    if(!checkRoles(memberToAction, adm))
+        return false;
+    memberToAction.ban({reason: reason});
+    logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **PermBan** от <@${adm.id}> **по причине:** ${reason}`);
+    return true;
+}
+
+function ban(memberToAction, adm, reason, timeToBan)
+{
+    if(!checkRoles(memberToAction, adm))
+        return false;
+    memberToAction.ban({reason: reason}).then(() => setTimeout(() => {server.members.unban(memberToAction.user.id, 'Временный бан завершён')}, timeToBan * 24 * 60 * 60000));
+    logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **BAN ${timeToBan} дней** от <@${adm.id}> **по причине:** ${reason}`);
+    return true;
+}
+
+function kick(memberToAction, adm, reason)
+{
+
+}
+
+function mute(memberToAction, adm, reason, timeToMute)
+{
+    if(!checkRoles(memberToAction, adm))
+        return false;
+    memberToAction.roles.add(warnRoles[2].id).then(() => setTimeout(() => {memberToAction.roles.remove(warnRoles[2])}, timeToMute * 60000));
+    logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **MUTE ${timeToMute} минут** от <@${adm.id}> **по причине:** ${reason}`);
+    return true;
+}
+
+function unMute(memberToAction, adm, reason)
+{
+
+}
+
+function unBan(memberToAction, adm, reason)
+{
+
 }
