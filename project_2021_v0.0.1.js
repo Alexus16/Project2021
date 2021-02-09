@@ -382,8 +382,9 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason += '\b';
+                _reason = _reason.split(' ').join('');
                 _time = args[2];
+                if(!checkVars(message, userToBan, _time, _reason)) return;
                 if(ban(userToBan, message.author, _reason, _time))
                 {
                     _warn(`${message.author.username} забанил пользователя ${userToBan.user.username}`);
@@ -407,7 +408,8 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason += '\b';
+                _reason = _reason.split(' ').join('');
+                if(!checkVars(message, userToWarn, 1, _reason)) return;
                 if(warn(userToWarn, message.author, _reason))
                 {
                     _warn(`${message.author.username} выдал предупреждение польщователю ${userToWarn.user.username}`);
@@ -428,8 +430,9 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason += '\b';
+                _reason = _reason.split(' ').join('');
                 _time = args[2];
+                if(!checkVars(message, userToMute, _time, _reason)) return;
                 if(mute(userToMute, message.author, _reason, _time))
                 {
                     _warn(`${message.author.username} выдал мут польщователю ${userToMute.user.username}`);
@@ -450,7 +453,8 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason += '\b';
+                _reason = _reason.split(' ').join('');
+                if(!checkVars(message, userToBan, 1, _reason)) return;
                 if(pBan(userToBan, message.author, _reason))
                 {
                     _warn(`${message.author.username} забанил пользователя ${userToBan.user.username} навсегда`);
@@ -461,7 +465,50 @@ bot.on('message', message =>
                     message.reply('Вы не являетесь администратором сервера или пользователь является модератором, администратором или разработчиком');
                 }
             }
-
+            else if(msg.startsWith(prefix + 'unmute'))
+            {
+                userToUnMute = message.mentions.members.first();
+                args = msg.split(' ');
+                if(args.length < 3) return;
+                _reason = '';
+                for(i = 2; i < args.length; i++)
+                {
+                    _reason += args[i] + ' ';
+                }
+                _reason = _reason.split(' ').join('');
+                if(!checkVars(message, userToUnMute, 1, _reason)) return;
+                if(unMute(userToUnMute, message.author, _reason))
+                {
+                    _warn(`${message.author.username} снял мут пользователю ${userToUnMute.user.username}`);
+                    message.reply(`Пользователю выдан UNMUTE.`)
+                }
+                else
+                {
+                    message.reply('Вы не являетесь администратором, модератором или разработчиком или пользователь является модератором, администратором или разработчиком');
+                }
+            }
+            else if(msg.startsWith(prefix + 'unwarn'))
+            {
+                userToUnWarn = message.mentions.members.first();
+                args = msg.split(' ');
+                if(args.length < 3) return;
+                _reason = '';
+                for(i = 2; i < args.length; i++)
+                {
+                    _reason += args[i] + ' ';
+                }
+                _reason = _reason.split(' ').join('');
+                if(!checkVars(message, userToUnWarn, 1, _reason)) return;
+                if(unWarn(userToUnWarn, message.author, _reason))
+                {
+                    _warn(`${message.author.username} снял предупреждение польщователю ${userToUnWarn.user.username}`);
+                    message.reply(`Пользователю выдано предупреждение.`)
+                }
+                else
+                {
+                    message.reply('Вы не являетесь администратором, модератором или разработчиком или пользователь является модератором, администратором или разработчиком');
+                }
+            }
             else if(!msg.startsWith(prefix))
             {
                 message.delete();
@@ -491,7 +538,8 @@ function checkRoles(memberToAction, userToAction)
 {
     if((adminRole.members.find(_member => _member.user == userToAction) != null
     || moderatorRole.members.find(_member => _member.user == userToAction) != null
-    || developerRole.members.find(_member => _member.user == userToAction) != null)
+    || developerRole.members.find(_member => _member.user == userToAction) != null
+    || bot.user == userToAction)
     && (adminRole.members.find(_member => _member == memberToAction) == null
     && moderatorRole.members.find(_member => _member == memberToAction) == null
     && developerRole.members.find(_member => _member == memberToAction) == null))
@@ -532,14 +580,14 @@ function warn(memberToAction, adm, reason)
     else if(warnRoles[1].members.find(member => member == memberToAction))
     {
         memberToAction.roles.remove(warnRoles[1]);
-        mute(memberToAction, adm, '[3/3] предупреждений', 300);
+        mute(memberToAction, bot.user, '[3/3] предупреждений', 300);
         logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[3/3] предупреждение => MUTE 300 минут** от <@${adm.id}> **по причине:** ${reason}`);
     }
     else if(warnRoles[2].members.find(member => member == memberToAction))
     {
         memberToAction.roles.remove(warnRoles[2]);
         //memberToAction.roles.add(warnRoles[1], reason);
-        ban(memberToAction, adm, '[4/3] предупреждений', 7);
+        ban(memberToAction, bot.user, '[4/3] предупреждений', 7);
         logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[4/3] предупреждение => BAN 7 дней** от <@${adm.id}> **по причине:** ${reason}`);
     }
     else
@@ -564,7 +612,7 @@ function ban(memberToAction, adm, reason, timeToBan)
 {
     if(!checkRoles(memberToAction, adm))
         return false;
-    memberToAction.ban({reason: reason}).then(() => setTimeout(() => {server.members.unban(memberToAction.user.id, 'Временный бан завершён')}, timeToBan * 24 * 60 * 60000));
+    memberToAction.ban({reason: reason}).then(() => setTimeout(() => {server.members.unban(memberToAction.user.id, 'Временный бан завершён').catch(() => {})}, timeToBan * 24 * 60 * 60000));
     logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **BAN ${timeToBan} дней** от <@${adm.id}> **по причине:** ${reason}`);
     return true;
 }
@@ -578,17 +626,76 @@ function mute(memberToAction, adm, reason, timeToMute)
 {
     if(!checkRoles(memberToAction, adm))
         return false;
-    memberToAction.roles.add(warnRoles[2].id).then(() => setTimeout(() => {memberToAction.roles.remove(warnRoles[2])}, timeToMute * 60000));
+    memberToAction.roles.add(warnRoles[2].id).then(() => setTimeout(() => {memberToAction.roles.remove(warnRoles[2]).catch(() => {})}, timeToMute * 60000));
     logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **MUTE ${timeToMute} минут** от <@${adm.id}> **по причине:** ${reason}`);
     return true;
 }
 
 function unMute(memberToAction, adm, reason)
 {
-
+    if(!checkRoles(memberToAction, adm))
+        return false;
+    memberToAction.roles.remove(warnRoles[2].id).then(() => logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **UNMUTE** от <@${adm.id}> **по причине:** ${reason}`));
+    return true;
 }
 
 function unBan(memberToAction, adm, reason)
 {
+    
+}
 
+function unWarn(memberToAction, adm, reason)
+{
+    if(!checkRoles(memberToAction, adm))
+        return false;
+    if(warnRoles[0].members.find(member => member == memberToAction))
+    {
+        memberToAction.roles.remove(warnRoles[0]);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **снятие предупреждения, остаётся [0/3] предупреждение** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    else if(warnRoles[1].members.find(member => member == memberToAction))
+    {
+        memberToAction.roles.remove(warnRoles[1]);
+        memberToAction.roles.add(warnRoles[0]);
+        //mute(memberToAction, bot.user, '[3/3] предупреждений', 300);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **снятие предупреждения, остаётся [1/3] предупреждение => MUTE 300 минут** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    else if(warnRoles[2].members.find(member => member == memberToAction))
+    {
+        //memberToAction.roles.remove(warnRoles[2]);
+        //memberToAction.roles.add(warnRoles[1], reason);
+        //ban(memberToAction, bot.user, '[4/3] предупреждений', 7);
+        //logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[4/3] предупреждение => BAN 7 дней** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    else
+    {
+        //memberToAction.roles.remove(warnRoles[0]);
+        //memberToAction.roles.add(warnRoles[0], reason);
+        //logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[1/3] предупреждение** от <@${adm.id}> **по причине:** ${reason}`);
+    }
+    return true;
+}
+
+function checkVars(message, memberToAction, time, reason)
+{
+    if(!memberToAction)
+    {
+        message.reply(`Участник сервера указан неверно, проверьте корректность команды`);
+        return false;
+    }
+    if(time <= 0 || time > 720)
+    {
+        message.reply(`Время действия указано неверно, допустимое значение времени варьируется от 0 до 720 минут/дней`);
+        return false;
+    }
+    if(isNaN(time))
+    {
+        message.reply(`Параметр времени не является числом, проверьте корректность команды`);
+        return false;
+    }
+    if(reason == '')
+    {
+        message.reply(`Не указана причина, повторите попытку, указав причину`);
+    }
+    return true;
 }
