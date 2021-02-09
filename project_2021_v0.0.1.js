@@ -374,6 +374,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'ban'))
             {
+                msg = msg.split(' ').join('');
                 userToBan = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 4) return;
@@ -382,7 +383,6 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason = _reason.split(' ').join('');
                 _time = args[2];
                 if(!checkVars(message, userToBan, _time, _reason)) return;
                 if(ban(userToBan, message.author, _reason, _time))
@@ -400,6 +400,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'warn'))
             {
+                msg = msg.split(' ').join('');
                 userToWarn = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -408,7 +409,6 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason = _reason.split(' ').join('');
                 if(!checkVars(message, userToWarn, 1, _reason)) return;
                 if(warn(userToWarn, message.author, _reason))
                 {
@@ -422,6 +422,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'mute'))
             {
+                msg = msg.split(' ').join('');
                 userToMute = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 4) return;
@@ -430,7 +431,6 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason = _reason.split(' ').join('');
                 _time = args[2];
                 if(!checkVars(message, userToMute, _time, _reason)) return;
                 if(mute(userToMute, message.author, _reason, _time))
@@ -445,6 +445,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'pban'))
             {
+                msg = msg.split(' ').join('');
                 userToBan = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -453,7 +454,6 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason = _reason.split(' ').join('');
                 if(!checkVars(message, userToBan, 1, _reason)) return;
                 if(pBan(userToBan, message.author, _reason))
                 {
@@ -467,6 +467,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'unmute'))
             {
+                msg = msg.split(' ').join('');
                 userToUnMute = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -475,7 +476,6 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason = _reason.split(' ').join('');
                 if(!checkVars(message, userToUnMute, 1, _reason)) return;
                 if(unMute(userToUnMute, message.author, _reason))
                 {
@@ -489,6 +489,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'unwarn'))
             {
+                msg = msg.split(' ').join('');
                 userToUnWarn = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -497,7 +498,6 @@ bot.on('message', message =>
                 {
                     _reason += args[i] + ' ';
                 }
-                _reason = _reason.split(' ').join('');
                 if(!checkVars(message, userToUnWarn, 1, _reason)) return;
                 if(unWarn(userToUnWarn, message.author, _reason))
                 {
@@ -683,7 +683,7 @@ function checkVars(message, memberToAction, time, reason)
         message.reply(`Участник сервера указан неверно, проверьте корректность команды`);
         return false;
     }
-    if(time <= 0 || time > 720)
+    if(time <= 0 || time >= 720)
     {
         message.reply(`Время действия указано неверно, допустимое значение времени варьируется от 0 до 720 минут/дней`);
         return false;
