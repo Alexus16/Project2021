@@ -4,6 +4,8 @@ const { info, Console } = require('console');
 const fs = require('fs');
 const { sep } = require('path');
 const { builtinModules } = require('module');
+const { POINT_CONVERSION_COMPRESSED } = require('constants');
+const { Z_BUF_ERROR } = require('zlib');
 
 //General vars
 server = null;
@@ -17,7 +19,7 @@ sep2 = ';';
 
 
 //System Roles
-warnRoles = [null, null];
+warnRoles = [null, null, null, null];
 warnRolesPath = 'warnRoles.txt';
 
 //banList
@@ -147,52 +149,51 @@ bot.on('ready', () =>
                 warnRoles[0] = server.roles.cache.find(role => role.id == _ids[0]);
                 if(warnRoles[0] == null)
                 {
-                    _warn('Роль warn1 не найдена...')
+                    _warn('Роль warn1 не найдена...');
                     fs.rmSync(warnRolesPath);
                 }
                 else
                 {
-                    _info('Роль warn1 установлена')
+                    _info('Роль warn1 установлена');
                 }
                 warnRoles[1] = server.roles.cache.find(role => role.id == _ids[1]);
                 if(warnRoles[1] == null)
                 {
-                    _warn('Роль warn2 не найдена...')
-                    fs.rmSync(warnRolesPath);
+                    _warn('Роль warn2 не найдена...');
+                    fs.unlinkSync(warnRolesPath);
                 }
                 else
                 {
-                    _info('Роль warn2 установлена')
+                    _info('Роль warn2 установлена');
                 }
                 warnRoles[2] = server.roles.cache.find(role => role.id == _ids[2]);
                 if(warnRoles[2] == null)
                 {
-                    _warn('Роль mute не найдена...')
-                    fs.rmSync(warnRolesPath);
+                    _warn('Роль mute не найдена...');
+                    fs.unlinkSync(warnRolesPath);
                 }
                 else
                 {
-                    _info('Роль mute установлена')
+                    _info('Роль mute установлена');
                 }
                 warnRoles[3] = server.roles.cache.find(role => role.id == _ids[3]);
                 if(warnRoles[3] == null)
                 {
-                    _warn('Роль default не найдена...')
-                    fs.rmSync(warnRolesPath);
+                    _warn('Роль default не найдена...');
+                    fs.unlinkSync(warnRolesPath);
                 }
                 else
                 {
-                    _info('Роль default установлена')
+                    _info('Роль default установлена');
                 }
             }
             else
             {
                 server.roles.create({data: {name: "Warn[1/3]"}}).then(newRole => warnRoles[0] = newRole);
                 server.roles.create({data: {name: "Warn[2/3]"}}).then(newRole => warnRoles[1] = newRole);
-                server.roles.create({data: {name: "Mute", position: server.roles.cache.array().length}}).then(newRole => warnRoles[2] = newRole);
-                server.roles.create({data: {name: "User", position: server.roles.cache.array().length}}).then(newRole => warnRoles[3] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id + sep1 + warnRoles[2].id + sep1 + warnRoles[3].id));
+                server.roles.create({data: {name: "Mute", position: testerRole.position}}).then(newRole => warnRoles[2] = newRole);
+                server.roles.create({data: {name: "User", position: testerRole.position}}).then(newRole => warnRoles[3] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id + sep1 + warnRoles[2].id + sep1 + warnRoles[3].id));
             }
-
         }
         else
         {
@@ -374,7 +375,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'ban'))
             {
-                msg = msg.split(' ').join('');
+                msg = spaceDeleter(msg);
                 userToBan = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 4) return;
@@ -400,7 +401,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'warn'))
             {
-                msg = msg.split(' ').join('');
+                msg = spaceDeleter(msg);
                 userToWarn = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -412,7 +413,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToWarn, 1, _reason)) return;
                 if(warn(userToWarn, message.author, _reason))
                 {
-                    _warn(`${message.author.username} выдал предупреждение польщователю ${userToWarn.user.username}`);
+                    _warn(`${message.author.username} выдал предупреждение пользователю ${userToWarn.user.username}`);
                     message.reply(`Пользователю выдано предупреждение.`)
                 }
                 else
@@ -422,7 +423,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'mute'))
             {
-                msg = msg.split(' ').join('');
+                msg = spaceDeleter(msg);
                 userToMute = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 4) return;
@@ -435,7 +436,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToMute, _time, _reason)) return;
                 if(mute(userToMute, message.author, _reason, _time))
                 {
-                    _warn(`${message.author.username} выдал мут польщователю ${userToMute.user.username}`);
+                    _warn(`${message.author.username} выдал мут пользователю ${userToMute.user.username}`);
                     message.reply(`Пользователю выдан MUTE.`)
                 }
                 else
@@ -445,7 +446,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'pban'))
             {
-                msg = msg.split(' ').join('');
+                msg = spaceDeleter(msg);
                 userToBan = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -467,7 +468,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'unmute'))
             {
-                msg = msg.split(' ').join('');
+                msg = spaceDeleter(msg);
                 userToUnMute = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -489,7 +490,7 @@ bot.on('message', message =>
             }
             else if(msg.startsWith(prefix + 'unwarn'))
             {
-                msg = msg.split(' ').join('');
+                msg = spaceDeleter(msg);
                 userToUnWarn = message.mentions.members.first();
                 args = msg.split(' ');
                 if(args.length < 3) return;
@@ -501,8 +502,8 @@ bot.on('message', message =>
                 if(!checkVars(message, userToUnWarn, 1, _reason)) return;
                 if(unWarn(userToUnWarn, message.author, _reason))
                 {
-                    _warn(`${message.author.username} снял предупреждение польщователю ${userToUnWarn.user.username}`);
-                    message.reply(`Пользователю выдано предупреждение.`)
+                    _warn(`${message.author.username} снял предупреждение пользователю ${userToUnWarn.user.username}`);
+                    message.reply(`Пользователю снято предупреждение.`)
                 }
                 else
                 {
@@ -516,6 +517,14 @@ bot.on('message', message =>
             
     }
 });
+
+bot.on('guildMemberAdd', member =>
+{
+    //member.roles.add(warnRoles[3].id);
+    logChannel.send(`<@${member.user.id}> присоединился к серверу...`);
+    _info(`Новый пользователь: ${member.user.username}`)
+})
+
 if(fs.existsSync('../token.txt'))
 {
     token = fs.readFileSync('../token.txt').toString();
@@ -527,12 +536,6 @@ else
     console.error('Error: no token available...');
 }
 
-bot.on('guildMemberAdd', member =>
-{
-    //member.roles.add(warnRoles[3].id);
-    logChannel.send(`<@${member.user.id}> присоединился к серверу...`);
-    _info(`Новый пользователь: ${member.user.username}`)
-})
 
 function checkRoles(memberToAction, userToAction)
 {
@@ -542,7 +545,8 @@ function checkRoles(memberToAction, userToAction)
     || bot.user == userToAction)
     && (adminRole.members.find(_member => _member == memberToAction) == null
     && moderatorRole.members.find(_member => _member == memberToAction) == null
-    && developerRole.members.find(_member => _member == memberToAction) == null))
+    && developerRole.members.find(_member => _member == memberToAction) == null
+    && bot.user != memberToAction.user))
     {
         return true;
     }
@@ -617,11 +621,6 @@ function ban(memberToAction, adm, reason, timeToBan)
     return true;
 }
 
-function kick(memberToAction, adm, reason)
-{
-
-}
-
 function mute(memberToAction, adm, reason, timeToMute)
 {
     if(!checkRoles(memberToAction, adm))
@@ -637,11 +636,6 @@ function unMute(memberToAction, adm, reason)
         return false;
     memberToAction.roles.remove(warnRoles[2].id).then(() => logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **UNMUTE** от <@${adm.id}> **по причине:** ${reason}`));
     return true;
-}
-
-function unBan(memberToAction, adm, reason)
-{
-    
 }
 
 function unWarn(memberToAction, adm, reason)
@@ -683,7 +677,7 @@ function checkVars(message, memberToAction, time, reason)
         message.reply(`Участник сервера указан неверно, проверьте корректность команды`);
         return false;
     }
-    if(time <= 0 || time >= 720)
+    if(time <= 0 || time > 720)
     {
         message.reply(`Время действия указано неверно, допустимое значение времени варьируется от 0 до 720 минут/дней`);
         return false;
@@ -698,4 +692,35 @@ function checkVars(message, memberToAction, time, reason)
         message.reply(`Не указана причина, повторите попытку, указав причину`);
     }
     return true;
+}
+
+function spaceDeleter(str)
+{
+    i = 0;
+    j = 0;
+    while(i < str.length)
+    {
+        if(str[i] == ' ')
+        {
+            for(j = i+1; j < str.length; j++)
+            {
+                if(str[j] != ' ') break;
+            }
+            if(j - i > 1)
+            {
+                str = str.substring(0, i+1) + str.substring(j);
+                i = 0;
+            }
+            else
+            {
+                i++;
+            }
+        }
+        else
+        {
+            i++;
+        }
+    }
+    str = str.trim();
+    return str;
 }
