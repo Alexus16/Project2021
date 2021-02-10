@@ -209,7 +209,7 @@ bot.on('message', message =>
     //console.log('Зарегистрировано сообщение от ' + message.author.username); //отладочное, будет удалено
     msg = message.content;
     
-    if(message.author == bot.user)
+    if(message.author == bot.user || message.author.bot)
     {
         return;
     }

@@ -6,6 +6,9 @@ const { sep } = require('path');
 const { builtinModules } = require('module');
 const { POINT_CONVERSION_COMPRESSED } = require('constants');
 const { Z_BUF_ERROR } = require('zlib');
+const { getFips } = require('crypto');
+
+
 
 //General vars
 server = null;
@@ -215,7 +218,7 @@ bot.on('message', message =>
     //console.log('Зарегистрировано сообщение от ' + message.author.username); //отладочное, будет удалено
     msg = message.content;
     
-    if(message.author == bot.user || message.author.isBot)
+    if(message.author == bot.user || message.author.bot)
     {
         return;
     }
@@ -229,7 +232,8 @@ bot.on('message', message =>
         }
         else if(msg.startsWith(prefix + 'showGroups'))
         {
-            
+            initGroups();
+            message.reply('WARNING! Тестовая версия! Возможны неполадки на сервере!')
         }
 
         else if(!msg.startsWith(prefix))
@@ -317,12 +321,14 @@ function spaceDeleter(str)
 
 function initGroups()
 {
-    if(!fs.existsSync(groupPath)) return;
+    newRolesAndCategoriesToWrite = [[], [], []];
+    //if(!fs.existsSync(groupPath)) return;
     tempRolesAndcCategories = [[], [], []];
 
     if(fs.existsSync(groupRolesAndcategoriesPath))
     {
         rowStr = fs.readFileSync(groupRolesAndcategoriesPath).toString();
+        _warn(rowStr);
         tempArr = rowStr.split(sep1);
         for(i = 0; i < tempArr.length; i++)
         {
@@ -334,26 +340,51 @@ function initGroups()
         }
     }
     rowStr = fs.readFileSync(groupPath).toString();
-    subjects = rowString.split(sep1);
+    _warn(rowStr);
+    subjects = rowStr.split(sep2);
     for(i = 0; i < subjects.length; i++)
     {
-        tempGroups = subjects[i].split(sep2);
+        tempGroups = subjects[i].split(sep1);
         nameOfSubject = tempGroups[0];
         for(i = 1; i < tempGroups.length; i++)
         {
             index = tempRolesAndcCategories[0].findIndex(element => element == nameOfSubject + ' ' + tempGroups[i]);
             if(index != -1)
             {
+                _warn('1');
                 groups[0].push(tempRolesAndcCategories[0][index]);
                 groups[1].push(tempRolesAndcCategories[1][index]);
                 groups[2].push(tempRolesAndcCategories[2][index]);
+                newRolesAndCategoriesToWrite[0].push(tempRolesAndcCategories[0][index]);
+                newRolesAndCategoriesToWrite[1].push(tempRolesAndcCategories[1][index]);
+                newRolesAndCategoriesToWrite[2].push(tempRolesAndcCategories[2][index]);
             }
             else
             {
-
+                _warn('2');
+                tempRole = null;
+                tempCategory = null;
+                console.log(nameOfSubject + ' ' + tempGroups[i]);
+                temps = createGroup(nameOfSubject + ' ' + tempGroups[i]);
+                console.log(temps);
+                tempRole = temps.role;
+                tempCategory = temps.ch;
+                newRolesAndCategoriesToWrite[0].push(nameOfSubject + ' ' + tempGoups[i]);
+                newRolesAndCategoriesToWrite[1].push(tempRole);
+                newRolesAndCategoriesToWrite[2].push(tempCategory);
+                groups[0].push(nameOfSubject + ' ' + tempGroups[i]);
+                groups[1].push(tempRole);
+                groups[2].push(tempCategory);
             }
         }
     }
+    strToWrite = '';
+    for(i = 0; i < newRolesAndCategoriesToWrite[0].length; i++)
+    {
+        strToWrite += `${newRolesAndCategoriesToWrite[0][i]}${sep2}${newRolesAndCategoriesToWrite[1][i]}${sep2}${newRolesAndCategoriesToWrite[2][i]}`;
+        if(i != newRolesAndCategoriesToWrite[0].length - 1) strToWrite += `${sep2}`;
+    }
+    fs.writeFileSync(groupRolesAndcategoriesPath, strToWrite);
 }
 
 function showMesagesToSelect()
@@ -362,7 +393,40 @@ function showMesagesToSelect()
 
 function createGroup(name)
 {
+    isEnd = false;
     nRole = null;
-    server.roles.create({data: {name: name}}).then(newRole => nRole = newRole);
-    server.channels.create({})
+    nCategory = null;
+    server.roles.create({data: {name: name}}).then(newRole => {
+        nRole = newRole;
+        server.channels.create(name, {type: 'category', permissionOverwrites: [
+        {
+            id: nRole.id,
+            allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+        },
+        {
+            id: server.roles.everyone.id,
+            deny: ['VIEW_CHANNEL', 'CONNECT', 'MANAGE_CHANNELS', 'SPEAK']
+        },
+        {
+            id: warnRoles[2].id,
+            deny: ['SPEAK', 'SEND_MESSAGES']
+        },
+        {
+            id: adminRole.id,
+            allow: ['VIEW_CHANNEL', 'MANAGE_CHANNELS', 'MOVE_MEMBERS', 'DEAFEN_MEMBERS', 'MUTE_MEMBERS', 'SEND_MESSAGES', 'CONNECT', 'SPEAK', 'MANAGE_MESSAGES']
+        },
+        {
+            id: moderatorRole.id,
+            allow: ['VIEW_CHANNEL', 'MOVE_MEMBERS', 'DEAFEN_MEMBERS', 'MUTE_MEMBERS', 'SEND_MESSAGES', 'CONNECT', 'SPEAK', 'MANAGE_MESSAGES']
+        }
+    ]})
+    .then(newCategory => {
+        nCategory = newCategory;
+        server.channels.create('флуд', {type: 'text', parent: nCategory.id});
+        server.channels.create('VOICE-1', {type: 'voice', parent: nCategory.id});
+        isEnd = true;
+    });
+    });
+    while(!isEnd);
+    return {role: nRole, ch: nCategory};
 }
