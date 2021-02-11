@@ -138,7 +138,6 @@ bot.on('ready', () =>
                 else
                 {
                     _info('Канал информации установлен');
-                    infoChannel.send('```Бот запущен и готов к работе```');
                 }
 
             }
@@ -194,6 +193,7 @@ bot.on('ready', () =>
                 server.roles.create({data: {name: "Mute", position: testerRole.position}}).then(newRole => warnRoles[2] = newRole);
                 server.roles.create({data: {name: "User", position: testerRole.position}}).then(newRole => warnRoles[3] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id + sep1 + warnRoles[2].id + sep1 + warnRoles[3].id));
             }
+            botChannel.send('```Бот Project2021 запущен...\nВерсия сборки: v0.1.0```');
         }
         else
         {
@@ -517,13 +517,6 @@ bot.on('message', message =>
             
     }
 });
-
-bot.on('guildMemberAdd', member =>
-{
-    //member.roles.add(warnRoles[3].id);
-    logChannel.send(`<@${member.user.id}> присоединился к серверу...`);
-    _info(`Новый пользователь: ${member.user.username}`)
-})
 
 if(fs.existsSync('../token.txt'))
 {
