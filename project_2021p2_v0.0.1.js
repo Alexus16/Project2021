@@ -260,7 +260,7 @@ bot.on('message', message =>
         else if(msg.startsWith(prefix + 'init2'))
         {
             initGroups();
-            message.reply('WARNING! Тестовая версия! Возможны неполадки на сервере!')
+            //message.reply('WARNING! Тестовая версия! Возможны неполадки на сервере!')
         }
         else if(msg.startsWith(prefix + 'message2'))
         {
@@ -419,6 +419,7 @@ async function showMesagesToSelect()
     _role = null;
     _numberOfGroups = 0;
     _strToMessage = `**${_subject}**\n`;
+    selectMessages = [];
     for(i = 0; i < groups[0].length; i++)
     {
         if(groups[0][i].split(' ')[0] != _subject)
