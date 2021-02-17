@@ -22,10 +22,9 @@ sep2 = ';';
 warnRoles = [null, null, null, null];
 warnRolesPath = 'warnRoles.txt';
 
-//banList
-muteList = [];
-//banList
-banList = []
+//muteList
+muteList = [[], []];
+
 //Roles
 groupRoles = []; //группы, 2-мерный массив, 1 индекс - название предмета, второй - номер группы
 moderatorRole = null; //Модер
@@ -388,7 +387,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToBan, _time, _reason)) return;
                 if(ban(userToBan, message.author, _reason, _time))
                 {
-                    _warn(`${message.author.username} забанил пользователя ${userToBan.user.username}`);
+                    _warn(`[ModerationSYS]:${message.author.username} забанил пользователя ${userToBan.user.username}`);
                     message.reply('Пользователь забанен');
                 }
                 else
@@ -413,7 +412,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToWarn, 1, _reason)) return;
                 if(warn(userToWarn, message.author, _reason))
                 {
-                    _warn(`${message.author.username} выдал предупреждение пользователю ${userToWarn.user.username}`);
+                    _warn(`[ModerationSYS]:${message.author.username} выдал предупреждение пользователю ${userToWarn.user.username}`);
                     message.reply(`Пользователю выдано предупреждение.`)
                 }
                 else
@@ -436,7 +435,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToMute, _time, _reason)) return;
                 if(mute(userToMute, message.author, _reason, _time))
                 {
-                    _warn(`${message.author.username} выдал мут пользователю ${userToMute.user.username}`);
+                    _warn(`[ModerationSYS]:${message.author.username} выдал мут пользователю ${userToMute.user.username}`);
                     message.reply(`Пользователю выдан MUTE.`)
                 }
                 else
@@ -458,7 +457,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToBan, 1, _reason)) return;
                 if(pBan(userToBan, message.author, _reason))
                 {
-                    _warn(`${message.author.username} забанил пользователя ${userToBan.user.username} навсегда`);
+                    _warn(`[ModerationSYS]:${message.author.username} забанил пользователя ${userToBan.user.username} навсегда`);
                     message.reply('Пользователь забанен навсегда');
                 }
                 else
@@ -480,7 +479,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToUnMute, 1, _reason)) return;
                 if(unMute(userToUnMute, message.author, _reason))
                 {
-                    _warn(`${message.author.username} снял мут пользователю ${userToUnMute.user.username}`);
+                    _warn(`[ModerationSYS]:${message.author.username} снял мут пользователю ${userToUnMute.user.username}`);
                     message.reply(`Пользователю выдан UNMUTE.`)
                 }
                 else
@@ -502,7 +501,7 @@ bot.on('message', message =>
                 if(!checkVars(message, userToUnWarn, 1, _reason)) return;
                 if(unWarn(userToUnWarn, message.author, _reason))
                 {
-                    _warn(`${message.author.username} снял предупреждение пользователю ${userToUnWarn.user.username}`);
+                    _warn(`[ModerationSYS]:${message.author.username} снял предупреждение пользователю ${userToUnWarn.user.username}`);
                     message.reply(`Пользователю снято предупреждение.`)
                 }
                 else
@@ -572,26 +571,26 @@ function warn(memberToAction, adm, reason)
     {
         memberToAction.roles.remove(warnRoles[0]);
         memberToAction.roles.add(warnRoles[1], reason);
-        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[2/3] предупреждение** от <@${adm.id}> **по причине:** ${reason}`);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[2/3] WARN** от <@${adm.id}> **по причине:** ${reason}`);
     }
     else if(warnRoles[1].members.find(member => member == memberToAction))
     {
         memberToAction.roles.remove(warnRoles[1]);
-        mute(memberToAction, bot.user, '[3/3] предупреждений', 300);
-        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[3/3] предупреждение => MUTE 300 минут** от <@${adm.id}> **по причине:** ${reason}`);
+        mute(memberToAction, bot.user, '[3/3] WARN', 300);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[3/3] WARN => MUTE 300 минут** от <@${adm.id}> **по причине:** ${reason}`);
     }
     else if(warnRoles[2].members.find(member => member == memberToAction))
     {
         memberToAction.roles.remove(warnRoles[2]);
         //memberToAction.roles.add(warnRoles[1], reason);
-        ban(memberToAction, bot.user, '[4/3] предупреждений', 7);
-        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[4/3] предупреждение => BAN 7 дней** от <@${adm.id}> **по причине:** ${reason}`);
+        ban(memberToAction, bot.user, 'MUTE + WARN', 5);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **WARN + MUTE => BAN 5 дней** от <@${adm.id}> **по причине:** ${reason}`);
     }
     else
     {
         //memberToAction.roles.remove(warnRoles[0]);
         memberToAction.roles.add(warnRoles[0], reason);
-        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[1/3] предупреждение** от <@${adm.id}> **по причине:** ${reason}`);
+        logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[1/3] WARN** от <@${adm.id}> **по причине:** ${reason}`);
     }
     return true;
 }
@@ -616,9 +615,33 @@ function ban(memberToAction, adm, reason, timeToBan)
 
 function mute(memberToAction, adm, reason, timeToMute)
 {
-    if(!checkRoles(memberToAction, adm))
+    if(!checkRoles(memberToAction, adm) && warnRoles[2].members.find(_member => _member == memberToAction) == null)
         return false;
-    memberToAction.roles.add(warnRoles[2].id).then(() => setTimeout(() => {memberToAction.roles.remove(warnRoles[2]).catch(() => {})}, timeToMute * 60000));
+    memberToAction.roles.add(warnRoles[2].id)
+    .then(() => {
+        timeout = setTimeout(() => {
+            memberToAction.roles.remove(warnRoles[2]).catch(() => {});
+            indexOfMember = muteList[0].findIndex(_id => _id == memberToAction.id)
+            if(indexOfMember == -1)
+            {
+                _warn('[ModerationSYS]: Can`t found Timeout to unmute. Be aware, it can cause work of bot');
+            }
+            else
+            {
+                muteList[1][indexOfMember] = null;
+            }
+        }, timeToMute * 60000);
+        indexOfMember = muteList[0].findIndex(_id => _id == memberToAction.id)
+        if(indexOfMember == -1)
+        {
+            muteList[0].push(memberToAction.id);
+            muteList[1].push(timeout);
+        }
+        else
+        {
+            muteList[1][indexOfMember] = timeout;
+        }
+    });
     logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **MUTE ${timeToMute} минут** от <@${adm.id}> **по причине:** ${reason}`);
     return true;
 }
@@ -627,6 +650,24 @@ function unMute(memberToAction, adm, reason)
 {
     if(!checkRoles(memberToAction, adm))
         return false;
+    indexOfMember = muteList[0].findIndex(_id => _id == memberToAction.id)
+    if(indexOfMember == -1)
+    {
+        muteList[0].push(memberToAction.id);
+        muteList[1].push(null);
+    }
+    else
+    {
+        try
+        {
+            clearTimeout(muteList[1][indexOfMember]);
+        }
+        finally
+        {
+            _warn('[ModerationSYS]: Timeout not exists.');
+        }
+        muteList[1][indexOfMember] = null;
+    }
     memberToAction.roles.remove(warnRoles[2].id).then(() => logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **UNMUTE** от <@${adm.id}> **по причине:** ${reason}`));
     return true;
 }
