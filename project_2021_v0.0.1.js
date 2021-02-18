@@ -192,7 +192,7 @@ bot.on('ready', () =>
                 server.roles.create({data: {name: "Mute"}}).then(newRole => warnRoles[2] = newRole);
                 server.roles.create({data: {name: "User"}}).then(newRole => warnRoles[3] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id + sep1 + warnRoles[2].id + sep1 + warnRoles[3].id));
             }
-            //botChannel.send('```Бот Project2021 запущен...\nВерсия сборки: v0.1.2```').catch(() => _err('КАНАЛЫ НЕ УСТАНОВЛЕНЫ'));
+            botChannel.send('```Бот Project2021 запущен...\nВерсия сборки: v0.1.2```').catch(() => _err('КАНАЛЫ НЕ УСТАНОВЛЕНЫ'));
         }
         else
         {
