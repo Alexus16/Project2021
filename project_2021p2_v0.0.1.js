@@ -352,9 +352,9 @@ async function resetGroups()
 {
     for(i = 0; i < groups[0].length; i++)
     {
-        await groups[1][i].delete();
+        await groups[1][i].delete('Сброс групп');
         tmpParent = groups[2][i];
-        channelsToDelete = server.channels.cache.filter(ch => ch.parent == tmpParent).each(ch => ch.delete());
+        server.channels.cache.filter(ch => ch.parent == tmpParent).each(ch => ch.delete('Сброс групп'));
         await tmpParent.delete();
     }
     _warn('Каналы всех групп удалены, реинициализируйте группы');
