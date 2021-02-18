@@ -189,10 +189,10 @@ bot.on('ready', () =>
             {
                 server.roles.create({data: {name: "Warn[1/3]"}}).then(newRole => warnRoles[0] = newRole);
                 server.roles.create({data: {name: "Warn[2/3]"}}).then(newRole => warnRoles[1] = newRole);
-                server.roles.create({data: {name: "Mute", position: testerRole.position}}).then(newRole => warnRoles[2] = newRole);
-                server.roles.create({data: {name: "User", position: testerRole.position}}).then(newRole => warnRoles[3] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id + sep1 + warnRoles[2].id + sep1 + warnRoles[3].id));
+                server.roles.create({data: {name: "Mute"}}).then(newRole => warnRoles[2] = newRole);
+                server.roles.create({data: {name: "User"}}).then(newRole => warnRoles[3] = newRole).then(() => fs.writeFileSync(warnRolesPath, warnRoles[0].id + sep1 + warnRoles[1].id + sep1 + warnRoles[2].id + sep1 + warnRoles[3].id));
             }
-            botChannel.send('```Бот Project2021 запущен...\nВерсия сборки: v0.1.2```');
+            botChannel.send('```Бот Project2021 запущен...\nВерсия сборки: v0.1.2```').catch(() => _err('КАНАЛЫ НЕ УСТАНОВЛЕНЫ'));
         }
         else
         {
