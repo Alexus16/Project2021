@@ -362,15 +362,15 @@ bot.on('message', message =>
                     message.channel.send("Что-то пошло не так:/");
             }
         }
-    if(message.channel == botChannel)
+    if(msg.startsWith(prefix + 'setup') && message.author == server.owner.user)
     {
-            if(msg.startsWith(prefix + 'setup'))
-            {
-                isSetup = true;
-                stageSetup = 0;
-                message.channel.send('Введите через тег роль тестера...');
-            }
-            else if(msg.startsWith(prefix + 'ban'))
+        isSetup = true;
+        stageSetup = 0;
+        message.channel.send('Введите через тег роль тестера...');
+    }
+        if(message.channel == botChannel)
+        {
+            if(msg.startsWith(prefix + 'ban'))
             {
                 msg = spaceDeleter(msg);
                 userToBan = message.mentions.members.first();
