@@ -271,6 +271,10 @@ bot.on('message', message =>
         {
             resetGroups();
         }
+        else if(msg.startsWith(prefix + 'deleteAll'))
+        {
+            deleteALL();
+        }
     }
 });
 if(fs.existsSync('../token2.txt'))
@@ -346,6 +350,11 @@ function spaceDeleter(str)
     }
     str = str.trim();
     return str;
+}
+
+function deleteALL()
+{
+    server.channels.cache.filter(ch => ch.parent != null && ch.parent.name != 'Общее' && ch.parent.name != 'Информация' && ch.parent.name != 'Команда Администрации').each(ch => ch.delete('Owner said it'));
 }
 
 async function resetGroups()
