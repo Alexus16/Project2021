@@ -203,7 +203,7 @@ bot.on('ready', () =>
                     _info('Роль default установлена');
                 }
             }
-            botChannel.send('```Бот Project 2021 P2 запущен...\nВерсия сборки: v0.1.0```')
+            botChannel.send('```Бот Project 2021 P2 запущен...\nВерсия сборки: v0.1.2```')
         }
         else
         {
