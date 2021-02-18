@@ -205,7 +205,6 @@ isSetup = false;
 stageSetup = 0;
 bot.on('message', message =>
 {
-    //console.log('Зарегистрировано сообщение от ' + message.author.username); //отладочное, будет удалено
     msg = message.content;
     
     if(message.author == bot.user || message.author.bot)
@@ -365,7 +364,6 @@ bot.on('message', message =>
         }
     if(message.channel == botChannel)
     {
-        //console.log('Зарегистрировано сообщение для бота от ' + message.author.username);
             if(msg.startsWith(prefix + 'setup'))
             {
                 isSetup = true;
@@ -582,13 +580,11 @@ function warn(memberToAction, adm, reason)
     else if(warnRoles[2].members.find(member => member == memberToAction))
     {
         memberToAction.roles.remove(warnRoles[2]);
-        //memberToAction.roles.add(warnRoles[1], reason);
         ban(memberToAction, bot.user, 'MUTE + WARN', 5);
         logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **WARN + MUTE => BAN 5 дней** от <@${adm.id}> **по причине:** ${reason}`);
     }
     else
     {
-        //memberToAction.roles.remove(warnRoles[0]);
         memberToAction.roles.add(warnRoles[0], reason);
         logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[1/3] WARN** от <@${adm.id}> **по причине:** ${reason}`);
     }
@@ -662,7 +658,7 @@ function unMute(memberToAction, adm, reason)
         {
             clearTimeout(muteList[1][indexOfMember]);
         }
-        finally
+        catch
         {
             _warn('[ModerationSYS]: Timeout not exists.');
         }
@@ -685,21 +681,7 @@ function unWarn(memberToAction, adm, reason)
     {
         memberToAction.roles.remove(warnRoles[1]);
         memberToAction.roles.add(warnRoles[0]);
-        //mute(memberToAction, bot.user, '[3/3] предупреждений', 300);
         logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **снятие предупреждения, остаётся [1/3] предупреждение => MUTE 300 минут** от <@${adm.id}> **по причине:** ${reason}`);
-    }
-    else if(warnRoles[2].members.find(member => member == memberToAction))
-    {
-        //memberToAction.roles.remove(warnRoles[2]);
-        //memberToAction.roles.add(warnRoles[1], reason);
-        //ban(memberToAction, bot.user, '[4/3] предупреждений', 7);
-        //logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[4/3] предупреждение => BAN 7 дней** от <@${adm.id}> **по причине:** ${reason}`);
-    }
-    else
-    {
-        //memberToAction.roles.remove(warnRoles[0]);
-        //memberToAction.roles.add(warnRoles[0], reason);
-        //logChannel.send(`Пользователь <@${memberToAction.user.id}> получает **[1/3] предупреждение** от <@${adm.id}> **по причине:** ${reason}`);
     }
     return true;
 }

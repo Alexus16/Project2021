@@ -216,10 +216,7 @@ bot.on('ready', () =>
 
 isSetup = false;
 stageSetup = 0;
-bot.on('guildMemberAdd', member => {
-    member.roles.add(warnRoles[3].id);
-    _info(`Новый пользователь: ${member.user.username}`);
-});
+
 bot.on('messageReactionAdd', (reaction, user) => {
     if(user.bot) return;
     _message = selectMessages.find(mes =>  reaction.message == mes);
@@ -230,6 +227,7 @@ bot.on('messageReactionAdd', (reaction, user) => {
     if(!_roleToGive) return;
     server.members.cache.find(member => member.user == user).roles.add(_roleToGive);
 });
+
 bot.on('messageReactionRemove', (reaction, user) => {
     if(user.bot) return;
     _message = selectMessages.find(mes =>  reaction.message == mes);
@@ -249,7 +247,10 @@ bot.on('message', message =>
     {
         return;
     }
-    
+    if(!warnRoles[3].members.find(_member => _member.user == message.author))
+    {
+        server.members.cache.find(_member => _member.user == message.author).roles.add(warnRoles[3].id);
+    }
 
     if(message.channel == botChannel)
     {
@@ -265,6 +266,10 @@ bot.on('message', message =>
         else if(msg.startsWith(prefix + 'message2'))
         {
             showMesagesToSelect();
+        }
+        else if(msg.startsWith(prefix + 'reset2'))
+        {
+            resetGroups();
         }
     }
 });
@@ -343,9 +348,22 @@ function spaceDeleter(str)
     return str;
 }
 
+async function resetGroups()
+{
+    for(i = 0; i < groups[0].length; i++)
+    {
+        await groups[1][i].delete();
+        tmpParent = groups[2][i];
+        channelsToDelete = server.channels.cache.filter(ch => ch.parent == tmpParent).each(ch => await ch.delete());
+        await tmpParent.delete();
+    }
+    _warn('Каналы все групп удалены, реинициализируйте группы');
+    groups = [[], [], []];
+}
 
 async function initGroups()
 {
+    groups = [[], [], []];
     newRolesAndCategoriesToWrite = [[], [], []];
     //if(!fs.existsSync(groupPath)) return;
     tempRolesAndcCategories = [[], [], []];
