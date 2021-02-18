@@ -355,6 +355,7 @@ function spaceDeleter(str)
 function deleteALL()
 {
     server.channels.cache.filter(ch => ch.parent != null && ch.parent.name != 'Общее' && ch.parent.name != 'Информация' && ch.parent.name != 'Команда Администрации').each(ch => ch.delete('Owner said it'));
+    _err('Удалено всё');
 }
 
 async function resetGroups()
