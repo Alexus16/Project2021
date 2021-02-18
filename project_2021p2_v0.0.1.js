@@ -573,9 +573,7 @@ async function createGroup(_name)
         }
     ]});
     server.channels.create('общение', {type: 'text', parent: nCategory.id});
-    server.channels.create('VOICE-1', {type: 'voice', parent: nCategory.id});
-    server.channels.create('VOICE-2', {type: 'voice', parent: nCategory.id});
-    server.channels.create('VOICE-3', {type: 'voice', parent: nCategory.id});
+    server.channels.create('VOICE', {type: 'voice', parent: nCategory.id});
     return {role: nRole, ch: nCategory};
 }
 
