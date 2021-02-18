@@ -566,8 +566,6 @@ async function createGroup(_name)
     server.channels.create('VOICE-1', {type: 'voice', parent: nCategory.id});
     server.channels.create('VOICE-2', {type: 'voice', parent: nCategory.id});
     server.channels.create('VOICE-3', {type: 'voice', parent: nCategory.id});
-    server.channels.create('VOICE-4', {type: 'voice', parent: nCategory.id});
-    server.channels.create('VOICE-5', {type: 'voice', parent: nCategory.id});
     return {role: nRole, ch: nCategory};
 }
 
