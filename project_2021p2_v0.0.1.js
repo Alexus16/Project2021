@@ -225,7 +225,9 @@ bot.on('messageReactionAdd', (reaction, user) => {
     if(reactIndex == -1) return;
     _roleToGive = _message.mentions.roles.find(role => role.id = findRoleIdByIndex(reactIndex + 1, _message.content));
     if(!_roleToGive) return;
-    server.members.cache.find(member => member.user == user).roles.add(_roleToGive);
+    reactMember = server.members.cache.find(member => member.user == user);
+    if(!reactMember) return;
+    reactMember.roles.add(_roleToGive);
 });
 
 bot.on('messageReactionRemove', (reaction, user) => {
@@ -236,7 +238,9 @@ bot.on('messageReactionRemove', (reaction, user) => {
     if(reactIndex == -1) return;
     _roleToGive = _message.mentions.roles.find(role => role.id = findRoleIdByIndex(reactIndex + 1, _message.content));
     if(!_roleToGive) return;
-    server.members.cache.find(member => member.user == user).roles.remove(_roleToGive);
+    reactMember = server.members.cache.find(member => member.user == user);
+    if(!reactMember) return;
+    reactMember.roles.remove(_roleToGive);
 });
 bot.on('message', message =>
 {
