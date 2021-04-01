@@ -740,3 +740,47 @@ function spaceDeleter(str)
     str = str.trim();
     return str;
 }
+
+
+
+function Server(_bot, id)
+{
+    testServer = _bot.guilds.cache.find(srv => srv.id == id);
+    if (!testServer) return null;
+    this.server = testServer;
+    this.devRole = null;
+    this.admRole = null;
+    this.modRole = null;
+    this.HWRole = null;
+    this.logChannel = null;
+    this.infoChannel = null;
+    this.botChannel = null;
+    this.testerRole = null;
+    this.warnRoles = [null, null, null];
+    this.init = function (ids) {
+        if (ids.length != 8) return null;
+
+        tmpRole = this.server.roles.cache.find(role => role.id == ids[0]);
+        if (!tmpRole) return;
+        this.devRole = tmpRole;
+
+        tmpRole = this.server.roles.cache.find(role => role.id == ids[1]);
+        if (!tmpRole) return;
+        this.admRole = tmpRole;
+
+        tmpRole = this.server.roles.cache.find(role => role.id == ids[2]);
+        if (!tmpRole) return;
+        this.modRole = tmpRole;
+
+        tmpRole = this.server.roles.cache.find(role => role.id == ids[3]);
+        if (!tmpRole) return;
+        this.HWRole = tmpRole;
+
+        tmpRole = this.server.roles.cache.find(role => role.id == ids[4]);
+        if (!tmpRole) return;
+        this.testerRole = tmpRole;
+
+        
+
+    }
+}

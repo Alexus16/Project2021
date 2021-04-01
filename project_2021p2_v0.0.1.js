@@ -217,17 +217,20 @@ bot.on('ready', () =>
 isSetup = false;
 stageSetup = 0;
 
-bot.on('messageReactionAdd', (reaction, user) => {
+bot.on('messageReactionAdd', (reaction, user) =>
+{
     if(user.bot) return;
     _message = selectMessages.find(mes =>  reaction.message == mes);
-    if(!_message) return;
-    reactIndex = reactions.findIndex(emoji => emoji == reaction.emoji.toString());
-    if(reactIndex == -1) return;
-    _roleToGive = _message.mentions.roles.find(role => role.id = findRoleIdByIndex(reactIndex + 1, _message.content));
-    if(!_roleToGive) return;
-    reactMember = server.members.cache.find(member => member.user == user);
-    if(!reactMember) return;
-    reactMember.roles.add(_roleToGive);
+    if (!_message) return;
+    else {
+        reactIndex = reactions.findIndex(emoji => emoji == reaction.emoji.toString());
+        if (reactIndex == -1) return;
+        _roleToGive = _message.mentions.roles.find(role => role.id = findRoleIdByIndex(reactIndex + 1, _message.content));
+        if (!_roleToGive) return;
+        reactMember = server.members.cache.find(member => member.user == user);
+        if (!reactMember) return;
+        reactMember.roles.add(_roleToGive);
+    }
 });
 
 bot.on('messageReactionRemove', (reaction, user) => {
@@ -265,7 +268,6 @@ bot.on('message', message =>
         else if(msg.startsWith(prefix + 'init2'))
         {
             initGroups();
-            //message.reply('WARNING! Тестовая версия! Возможны неполадки на сервере!')
         }
         else if(msg.startsWith(prefix + 'message2'))
         {
