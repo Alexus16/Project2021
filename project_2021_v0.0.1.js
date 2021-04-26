@@ -2,12 +2,6 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const { info, Console } = require('console');
 const fs = require('fs');
-const { sep } = require('path');
-const { builtinModules } = require('module');
-const { POINT_CONVERSION_COMPRESSED } = require('constants');
-const { Z_BUF_ERROR } = require('zlib');
-const { threadId } = require('node:worker_threads');
-
 //General vars
 server = null;
 infoChannel = null;
@@ -891,16 +885,16 @@ function Moderator(srv) {
         //Проверка на существование польщователя
         if(!user || !this.server.members.cache.find(member => member.user == user)) {
             _warn("Ошибка при BAN: Пользователя не существует");
-            return;
+            return 0x01;
         }
         
-        memberToMute = this.server.members.cache.find(member => member.user == user);
+        memberToBan = this.server.members.cache.find(member => member.user == user);
 
         //Проверка на возможность изменения ролей
-        if(!memberToMute.manageable)
+        if(!memberToBan.banable)
         {
             _warn("Ошибка при BAN: Пользователь имеет иммунитет");
-            return;
+            return 0x02;
         }
         
         //Проверка на администратора
@@ -909,46 +903,137 @@ function Moderator(srv) {
              admin.roles.find(role => role == this.server.moderatorRole)))
         {
             _warn("Ошибка при BAN: Нет прав администратора / модератора");
-            return;
+            return 0x03;
         }
 
         //Проверка пользователя на админ права
-        if(memberToMute.roles.find(role => this.server.developerRole)     ||
-           memberToMute.roles.find(role => this.server.administratorRole) ||
-           memberToMute.roles.find(role => this.server.moderatorRole))
+        if(memberToBan.roles.find(role => this.server.developerRole)     ||
+           memberToBan.roles.find(role => this.server.administratorRole) ||
+           memberToBan.roles.find(role => this.server.moderatorRole))
         {
             _warn("Ошибка при BAN: Пользователь обладает правами администратора/модератора");
+            return 0x04;
         }
 
+        //Проверка на нахождение в бане
+        if(this.banList.findIndex(element => element[0] == memberToBan && element[1] != null) != -1)
+        {
+            _warn("Ошибка при BAN: Пользователь уже забанен");
+            return 0x05;
+        }
+        
         //Выдача мута
-        memberToMute.roles.add(this.muteRole).then(() =>
+        memberToBan.ban()
+        .then(() =>
         {
             _info("Выдача BAN - успешно");
-            indexOfUser = this.muteList.findIndex(note => note[0] == memberToMute);
+            indexOfUser = this.banList.findIndex(note => note[0] == memberToBan);
             if(indexOfUser == -1)
             {
                 timeout = setTimeout(() => 
                 {
-                    memberToMute.roles.remove(this.muteRole)
+                    memberToBan.unban()
                     .then(() =>
                     {
                         _info("Действие BAN завершено");
-                        indexOfUser = this.muteList.findIndex(note => note[0] == memberToMute);
+                        indexOfUser = this.banList.findIndex(note => note[0] == memberToBan);
                         
                         if(indexOfUser == -1) return;
                         
-                        this.muteList[indexOfUser][1] = null;
+                        this.banList[indexOfUser][1] = null;
                     })
                     .catch(()=>{});
-                }, timeToMute * 60000);
+                }, timeToBan * 24 * 3600000);
 
-                this.muteList.push([memberToMute, timeout]);
+                this.banList.push([memberToBan, timeout]);
             }
             else
             {
-
+                timeout = setTimeout(() => 
+                {
+                    memberToBan.unban()
+                    .then(() =>
+                    {
+                        _info("Действие BAN завершено");
+                        newIndexOfUser = this.banList.findIndex(note => note[0] == memberToBan);
+                        
+                        if(newIndexOfUser == -1) return;
+                        
+                        this.banList[newIndexOfUser][1] = null;
+                    })
+                    .catch(()=>{});
+                }, timeToBan * 24 * 3600000);
+                this.banList[indexOfUser][1] = timeout;
             }
+            return 0x00;
         }).catch(() =>
-        _warn("Ошибка при MUTE: Непредвиденная ошибка"));
+        {
+            _warn("Ошибка при BAN: Непредвиденная ошибка");
+            return 0x13;
+        });
+    }
+
+    this.permBan(admin, user)
+    {
+        //Проверка на существование польщователя
+        if(!user || !this.server.members.cache.find(member => member.user == user)) {
+            _warn("Ошибка при BAN: Пользователя не существует");
+            return 0x01;
+        }
+        
+        memberToBan = this.server.members.cache.find(member => member.user == user);
+
+        //Проверка на возможность изменения ролей
+        if(!memberToBan.banable)
+        {
+            _warn("Ошибка при BAN: Пользователь имеет иммунитет");
+            return 0x02;
+        }
+        
+        //Проверка на администратора
+        if(!(admin.roles.find(role => role == this.server.developerRole)     ||
+             admin.roles.find(role => role == this.server.administratorRole) ||
+             admin.roles.find(role => role == this.server.moderatorRole)))
+        {
+            _warn("Ошибка при BAN: Нет прав администратора / модератора");
+            return 0x03;
+        }
+
+        //Проверка пользователя на админ права
+        if(memberToBan.roles.find(role => this.server.developerRole)     ||
+           memberToBan.roles.find(role => this.server.administratorRole) ||
+           memberToBan.roles.find(role => this.server.moderatorRole))
+        {
+            _warn("Ошибка при BAN: Пользователь обладает правами администратора/модератора");
+            return 0x04;
+        }
+
+        //Проверка на нахождение в бане
+        if(this.banList.findIndex(element => element[0] == memberToBan && element[1] != null) != -1)
+        {
+            _warn("Ошибка при BAN: Пользователь уже забанен");
+            return 0x05;
+        }
+
+        //Выдача бана
+        memberToBan.ban()
+        .then(() =>
+        {
+            _info("Выдача BAN - успешно");
+            indexOfUser = this.banList.findIndex(note => note[0] == memberToBan);
+            if(indexOfUser == -1)
+            {
+                this.banList.push([memberToBan, "P"]);
+            }
+            else
+            {
+                this.banList[indexOfUser][1] = "P";
+            }
+            return 0x00;
+        }).catch(() =>
+        {
+            _warn("Ошибка при BAN: Непредвиденная ошибка");
+            return 0x13;
+        });
     }
 }
