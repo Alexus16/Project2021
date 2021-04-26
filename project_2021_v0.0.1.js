@@ -6,6 +6,7 @@ const { sep } = require('path');
 const { builtinModules } = require('module');
 const { POINT_CONVERSION_COMPRESSED } = require('constants');
 const { Z_BUF_ERROR } = require('zlib');
+const { threadId } = require('node:worker_threads');
 
 //General vars
 server = null;
@@ -739,4 +740,215 @@ function spaceDeleter(str)
     }
     str = str.trim();
     return str;
+}
+
+
+function Server(id, cl) {
+    if(!cl || !cl.guilds.cache.find(srv => srv.id == id)) return;
+
+    this.client = cl;
+    this.server = cl.guilds.cache.find(srv => srv.id == id);
+
+    this.roles = cl.roles;
+    this.channels = cl.channels;
+
+    this.botCh = cl.channels.cache.find(ch => ch.type == 'text'); //
+    this.infoCh = cl.channels.cache.find(ch => ch.type == 'text'); // - по-умолчанию - первый текстовый канал
+    this.newsCh = cl.channels.cache.find(ch => ch.type == 'text'); //
+
+    this.developerRole;
+    this.testerRole;
+    this.administratorRole;
+    this.moderatorRole;
+    this.HWRole;
+
+    this.setBotCh(id)
+    {
+        if(!this.channels.cache.find(ch => ch.id == id)) return;
+        this.botCh = this.channels.cache.find(ch => ch.id == id);
+    }
+
+    this.setInfoCh(id)
+    {
+        if(!this.channels.cache.find(ch => ch.id == id)) return;
+        this.infoCh = this.channels.cache.find(ch => ch.id == id);
+    }
+
+    this.setNewsCh(id)
+    {
+        if(!this.channels.cache.find(ch => ch.id == id)) return;
+        this.newsCh = this.channels.cache.find(ch => ch.id == id);
+    }
+}
+
+function Moderator(srv) {
+    if(!srv || !srv.client || !srv.server) return;
+
+    this.server = srv;
+    this.client = this.server.client;
+
+    this.firstWarnRole = null;
+    this.secondWarnRole = null;
+    this.muteRole = null;
+    
+    this.muteList = [];
+    this.banList = [];
+
+    this.mute(admin, user, timeToMute)
+    {
+        //Проверка на существование польщователя
+        if(!user || !this.server.members.cache.find(member => member.user == user)) {
+            _warn("Ошибка при MUTE: Пользователя не существует");
+            return 0x01;
+        }
+        
+        memberToMute = this.server.members.cache.find(member => member.user == user);
+
+        //Проверка на возможность изменения ролей
+        if(!memberToMute.manageable)
+        {
+            _warn("Ошибка при MUTE: Пользователь имеет иммунитет");
+            return 0x02;
+        }
+        
+        //Проверка на администратора
+        if(!(admin.roles.find(role => role == this.server.developerRole)     ||
+             admin.roles.find(role => role == this.server.administratorRole) ||
+             admin.roles.find(role => role == this.server.moderatorRole)))
+        {
+            _warn("Ошибка при MUTE: Нет прав администратора / модератора");
+            return 0x03;
+        }
+
+        //Проверка пользователя на админ права
+        if(memberToMute.roles.find(role => role == this.server.developerRole)     ||
+           memberToMute.roles.find(role => role ==  this.server.administratorRole) ||
+           memberToMute.roles.find(role => role ==  this.server.moderatorRole))
+        {
+            _warn("Ошибка при MUTE: Пользователь облажает правами администратора/модератора");
+            return 0x04;
+        }
+
+        //Проверка на уже выданный мут
+        if(memberToMute.roles.find(role => role == this.muteRole))
+        {
+            _warn("Ошибка при MUTE: пользователю уже выдан MUTE");
+            return 0x05;
+        }
+
+        //Выдача мута
+        memberToMute.roles.add(this.muteRole).then(() =>
+        {
+           _info("Выдача MUTE - успешно");
+            indexOfUser = this.muteList.findIndex(note => note[0] == memberToMute);
+            if(indexOfUser == -1)
+            {
+                timeout = setTimeout(() => 
+                {
+                    memberToMute.roles.remove(this.muteRole)
+                    .then(() =>
+                    {
+                        _info("Действие MUTE завершено");
+                        newIndexOfUser = this.muteList.findIndex(note => note[0] == memberToMute);
+                        
+                        if(newIndexOfUser == -1) return;
+                        
+                        this.muteList[newIndexOfUser][1] = null;
+                    })
+                    .catch(()=>{});
+                }, timeToMute * 60000);
+
+                this.muteList.push([memberToMute, timeout]);
+            }
+            else
+            {
+                timeout = setTimeout(() => 
+                {
+                    memberToMute.roles.remove(this.muteRole)
+                    .then(() =>
+                    {
+                        _info("Действие MUTE завершено");
+                        newIndexOfUser = this.muteList.findIndex(note => note[0] == memberToMute);
+                        
+                        if(newIndexOfUser == -1) return;
+                        
+                        this.muteList[newIndexOfUser][1] = null;
+                    })
+                    .catch(()=>{});
+                }, timeToMute * 60000);
+                this.muteList[indexOfUser][1] = timeout;
+            }
+            return 0x00
+        }).catch(() =>
+        {
+            _warn("Ошибка при MUTE: Непредвиденная ошибка");
+            return 0x13;
+        });
+    }
+
+    this.tempBan(admin, user, timeToBan)
+    {
+        //Проверка на существование польщователя
+        if(!user || !this.server.members.cache.find(member => member.user == user)) {
+            _warn("Ошибка при BAN: Пользователя не существует");
+            return;
+        }
+        
+        memberToMute = this.server.members.cache.find(member => member.user == user);
+
+        //Проверка на возможность изменения ролей
+        if(!memberToMute.manageable)
+        {
+            _warn("Ошибка при BAN: Пользователь имеет иммунитет");
+            return;
+        }
+        
+        //Проверка на администратора
+        if(!(admin.roles.find(role => role == this.server.developerRole)     ||
+             admin.roles.find(role => role == this.server.administratorRole) ||
+             admin.roles.find(role => role == this.server.moderatorRole)))
+        {
+            _warn("Ошибка при BAN: Нет прав администратора / модератора");
+            return;
+        }
+
+        //Проверка пользователя на админ права
+        if(memberToMute.roles.find(role => this.server.developerRole)     ||
+           memberToMute.roles.find(role => this.server.administratorRole) ||
+           memberToMute.roles.find(role => this.server.moderatorRole))
+        {
+            _warn("Ошибка при BAN: Пользователь обладает правами администратора/модератора");
+        }
+
+        //Выдача мута
+        memberToMute.roles.add(this.muteRole).then(() =>
+        {
+            _info("Выдача BAN - успешно");
+            indexOfUser = this.muteList.findIndex(note => note[0] == memberToMute);
+            if(indexOfUser == -1)
+            {
+                timeout = setTimeout(() => 
+                {
+                    memberToMute.roles.remove(this.muteRole)
+                    .then(() =>
+                    {
+                        _info("Действие BAN завершено");
+                        indexOfUser = this.muteList.findIndex(note => note[0] == memberToMute);
+                        
+                        if(indexOfUser == -1) return;
+                        
+                        this.muteList[indexOfUser][1] = null;
+                    })
+                    .catch(()=>{});
+                }, timeToMute * 60000);
+
+                this.muteList.push([memberToMute, timeout]);
+            }
+            else
+            {
+
+            }
+        }).catch(() =>
+        _warn("Ошибка при MUTE: Непредвиденная ошибка"));
+    }
 }
